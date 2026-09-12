@@ -14,8 +14,8 @@ def run_dummy_server():
     server.serve_forever()
 
 # تشغيل خادم الويب في مسار جانبي كي لا يعطل الوكيل
-threading.Thread(target=run_dummy_server, daemon=True).start()
-#!/usr/bin/env python3
+if __name__ == "__main__":
+    threading.Thread(target=run_dummy_server, daemon=True).start()#!/usr/bin/env python3
 """AIAgent: the tool-calling agent runner (conversation loop, tool execution, session lifecycle).
 
     from run_agent import AIAgent
