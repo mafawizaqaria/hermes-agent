@@ -14,8 +14,7 @@ def run_dummy_server():
     server.serve_forever()
 
 # تشغيل خادم الويب في مسار جانبي كي لا يعطل الوكيل
-if __name__ == "__main__":
-    threading.Thread(target=run_dummy_server, daemon=True).start()#!/usr/bin/env python3
+#!/usr/bin/env python3
 """AIAgent: the tool-calling agent runner (conversation loop, tool execution, session lifecycle).
 
     from run_agent import AIAgent
@@ -1507,8 +1506,14 @@ def main(
 
 if __name__ == "__main__":
     import fire
-    fire.Fire(main)
 
+    threading.Thread(
+        target=run_dummy_server,
+        daemon=True
+    ).start()
+
+    print("🚀 Starting Hermes main...", flush=True)
+    fire.Fire(main)
 
 # ---- BEGIN PLUGIN-COMPAT (revert-scheduled; see COMPAT_MANIFEST.md) ----
 # Names external plugins imported from this module before the Sep 2026 decomposition.
