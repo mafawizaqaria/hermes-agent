@@ -101,6 +101,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+      - uses: ./.github/actions/e2e-baselines
+        with:
+          install-ref: ${{ inputs.install-ref }}
 
       # The checkout owns the chat driver, not OLD's installed Node/runtime.
       - name: Set up driver tools only
@@ -178,3 +181,4 @@ jobs:
           path: ${{ runner.temp }}/e2e-logs
           retention-days: 14
           if-no-files-found: ignore
+

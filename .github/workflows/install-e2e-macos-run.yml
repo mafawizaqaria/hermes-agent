@@ -113,6 +113,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+      - uses: ./.github/actions/e2e-baselines
+        with:
+          install-ref: ${{ inputs.install-ref }}
 
       - name: Set up driver tools only
         uses: ./.github/actions/setup-pm
@@ -283,3 +286,4 @@ jobs:
           path: ${{ runner.temp }}/e2e-logs
           retention-days: 14
           if-no-files-found: ignore
+
