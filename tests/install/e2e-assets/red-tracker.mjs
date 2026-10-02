@@ -16,6 +16,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
@@ -89,12 +90,18 @@ async function main() {
   const jobs = gh(['api', '--paginate', `repos/${repo}/actions/runs/${runId}/jobs?per_page=100`,
     '--jq', '.jobs[] | {name, conclusion, html_url, steps: [.steps[]? | {name, conclusion}]}'])
     .split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
-  const open = JSON.parse(gh(['api', `repos/${repo}/issues?labels=${LABEL}&state=open&per_page=5`]))
-    .filter((/** @type {any} */ i) => !i.pull_request);
+  const issuesEnabled = JSON.parse(gh(['api', `repos/${repo}`])).has_issues;
+  const open = issuesEnabled
+    ? JSON.parse(gh(['api', `repos/${repo}/issues?labels=${LABEL}&state=open&per_page=5`]))
+      .filter((/** @type {any} */ i) => !i.pull_request)
+    : [];
   const openIssue = open.length ? { number: open[0].number } : null;
   const plan = planTracker(run, jobs, openIssue);
   console.log(`run ${runId}: conclusion=${run.conclusion} red-legs=${jobs.filter((j) => RED.has(String(j.conclusion))).length} open-tracker=${openIssue ? `#${openIssue.number}` : 'none'} -> ${plan.action}`);
-  if (values['dry-run'] || plan.action === 'none') {
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Install & Update E2E tracker\n\n${plan.body || `Run ${run.html_url}: ${run.conclusion}.`}\n\n${issuesEnabled ? '' : 'Issues are disabled; this run summary is the tracker report.\n'}`);
+  }
+  if (!issuesEnabled || values['dry-run'] || plan.action === 'none') {
     if (plan.body) console.log(`\n--- ${plan.title || 'comment'} ---\n${plan.body}`);
     return;
   }
@@ -116,3 +123,4 @@ async function main() {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   await main();
 }
+
